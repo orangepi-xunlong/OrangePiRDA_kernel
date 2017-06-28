@@ -109,10 +109,11 @@ rda_gpio_direction_output(struct gpio_chip *chip, unsigned offset, int value)
 		writel(BIT(offset), rda_chip->regs.oen_set_out);
 	}
 
-	if (value)
+	if (value) 
 		writel(BIT(offset), rda_chip->regs.set);
-	else
+	else 
 		writel(BIT(offset), rda_chip->regs.clr);
+
 	return 0;
 }
 
@@ -123,12 +124,14 @@ static int rda_gpio_get(struct gpio_chip *chip, unsigned offset)
 
 	pr_debug("get gpio %d value:\n", chip->base + offset);
 	rda_chip = container_of(chip, struct rda_gpio_chip, chip);
-	if (rda_chip->type == GPO) //gpo
+	if (rda_chip->type == GPO) { //gpo 
 		return (readl(rda_chip->regs.set) & (BIT(offset))) ? 1 : 0;
+	}
 
-	if (readl(rda_chip->regs.oen_val) & BIT(offset)) //gpio input
+	if (readl(rda_chip->regs.oen_val) & BIT(offset))   //gpio input
 		val = (readl(rda_chip->regs.val) & BIT(offset)) ? 1 : 0;
-	else	//gpio output
+	
+	else 	//gpio output
 		val = (readl(rda_chip->regs.set) & BIT(offset)) ? 1 : 0;
 
 	return val;
@@ -142,9 +145,9 @@ static void rda_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 	//pr_debug("set gpio value:%d\n", value);
 	//pr_debug("set gpio regs:%p to %lx\n",
 	//			rda_chip->regs.set, BIT(offset));
-	if (value)
+	if (value) 
 		writel(BIT(offset), rda_chip->regs.set);
-	else
+	else 
 		writel(BIT(offset), rda_chip->regs.clr);
 }
 

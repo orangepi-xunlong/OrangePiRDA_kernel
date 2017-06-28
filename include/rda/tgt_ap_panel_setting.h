@@ -1,7 +1,7 @@
 #ifndef __TGT_AP_PANEL_SETTING_H
 #define __TGT_AP_PANEL_SETTING_H
 
-#include "rda_panel_comm.h"
+#include <rda/rda_panel_comm.h>
 
 /* ***************************************************************
    * The above list all the panel rda support, the following line to

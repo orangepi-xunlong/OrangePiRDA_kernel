@@ -37,18 +37,12 @@
 #include "rda_dsp_aud.h"
 #include <rda/tgt_ap_board_config.h>
 
-
-
-
 struct msys_device *bp_gpioc_msys = NULL;
-
 
 /* rda_gpioc_data driver data */
 struct rda_gpioc_data {
 	struct msys_device *gpioc_msys;
 };
-
-
 
 typedef struct
 {
@@ -56,7 +50,7 @@ typedef struct
 	u8 value;
 	u8 default_value1;
 	u8 default_value2;
-}rda_gpioc_op;
+} rda_gpioc_op;
 
 #ifdef _TGT_AP_LED_RED_FLASH
 #define LED_CAM_FLASH	"red-flash"
@@ -69,7 +63,6 @@ typedef struct
 #ifdef LED_CAM_FLASH
 DEFINE_LED_TRIGGER(rda_sensor_led);
 #endif
-
 
 static int rda_modem_gpioc_notify(struct notifier_block *nb, unsigned long mesg, void *data)
 {
@@ -95,18 +88,9 @@ int rda_gpioc_operation(rda_gpioc_op *gpioc_op)
 	u8 data[sizeof(rda_gpioc_op)] = { 0 };
 	struct client_cmd gpioc_cmd;
 
-printk(" 1111111111111111  rda_gpioc_operation \r\n  ");
+	value = sizeof(rda_gpioc_op);
 
-value = sizeof(rda_gpioc_op);
-printk("  1111111111111111  rda_gpioc_operation value = %d  \r\n ", value);
-printk("  1111111111111111  rda_gpioc_operation id = 0x%x value = 0x%x  value1 = 0x%x value2 = 0x%x \r\n ", gpioc_op->id, 
-	gpioc_op->value, gpioc_op->default_value1, gpioc_op->default_value2);
-
-
-memcpy(data, gpioc_op, sizeof(rda_gpioc_op));
-printk("  1111111111111111  rda_gpioc_operation data[0] = 0x%x data[1] = 0x%x  data[2] = 0x%x data[3] = 0x%x \r\n ", data[0], 
-	data[1], data[2], data[3]);
-
+	memcpy(data, gpioc_op, sizeof(rda_gpioc_op));
 	memset(&gpioc_cmd, 0, sizeof(gpioc_cmd));
 	gpioc_cmd.pmsys_dev = bp_gpioc_msys;
 	gpioc_cmd.mod_id = SYS_GPIO_MOD;
@@ -117,68 +101,65 @@ printk("  1111111111111111  rda_gpioc_operation data[0] = 0x%x data[1] = 0x%x  d
 
 	printk( ">>>> [%s], ret [%d] \n", __func__, ret);
 
-
 	return ret;
-
 }
-
 
 static ssize_t rdabp_gpio_open_store(struct device *dev, struct device_attribute *attr,
 				const char *buf, size_t count)
 {
-	printk("=========================\n");
-#if 0
-	int enable;
-	int ret;
-	u8 data[8] ={ 0 };
-	struct client_cmd gpioc_cmd;
-	struct rda_gpioc_data *gpioc_data = dev_get_drvdata(dev);
-
-printk(" 1111111111111111  rdabp_gpio_open_store \r\n  ");
-
-	if (sscanf(buf, "%u", &enable) != 1)
-	{
-		printk(" 1111111111111111  rdabp_gpio_open_store \   error !!!!!!!r\n  ");
-		return -EINVAL;
-	}
-
-
-	memset(&gpioc_cmd, 0, sizeof(gpioc_cmd));
-	gpioc_cmd.pmsys_dev = gpioc_data->gpioc_msys;
-	gpioc_cmd.mod_id = SYS_GPIO_MOD;
-	gpioc_cmd.mesg_id = SYS_GPIO_CMD_OPEN;
-	gpioc_cmd.pdata = (void *)&data;
-	gpioc_cmd.data_size = sizeof(data);
-	ret = rda_msys_send_cmd(&gpioc_cmd);
-
-	printk( ">>>> [%s], ret [%d] \n", __func__, ret);
-
-
-	return ret;
-#else
 	int value;
-	rda_gpioc_op gpioc_op;
+
 	printk(KERN_DEBUG "%s, buf: %s\n", __func__, buf);
-printk(" 1111111111111111  rdabp_gpio_set_io_store \r\n  ");
 
 	if (sscanf(buf, "%u", &value) != 1)
-	{
-		printk(" 1111111111111111  rdabp_gpio_set_io_store    error !!!!!!! \r\n  ");
 		return -EINVAL;
-	}
-       gpioc_op.id = 27;
+
+	printk("The SYSTEM value %d\n", value);
+	
+	return count;
+}
+
+/*
+ * GPO set.
+ */
+static ssize_t OrangePi_2G_IOT_gpio_set_store(struct device *dev, struct device_attribute *attr,
+		const char *buf, size_t count)
+{
+	int gpionum;
+	rda_gpioc_op gpioc_op;
+
+	if (sscanf(buf, "%u", &gpionum) != 1)
+		return -EINVAL;
+
+	gpioc_op.id = gpionum;
 	gpioc_op.value = 1;
 	gpioc_op.default_value1 = 0;
 	gpioc_op.default_value2 = 0;
 	rda_gpioc_operation(&gpioc_op);
-	
-	
+
 	return 1;
-#endif
 }
 
+/*
+ * GPO clear.
+ */
+static ssize_t OrangePi_2G_IOT_gpio_clear_store(struct device *dev, struct device_attribute *attr,
+		const char *buf, size_t count)
+{
+	int gpionum;
+	rda_gpioc_op gpioc_op;
 
+	if (sscanf(buf, "%u", &gpionum) != 1)
+		return -EINVAL;
 
+	gpioc_op.id = gpionum;
+	gpioc_op.value = 0;
+	gpioc_op.default_value1 = 0;
+	gpioc_op.default_value2 = 0;
+	rda_gpioc_operation(&gpioc_op);
+
+	return 1;
+}
 static ssize_t rdabp_gpio_close_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
@@ -188,8 +169,7 @@ static ssize_t rdabp_gpio_close_store(struct device *dev,
 
 	if (sscanf(buf, "%u", &value) != 1)
 		return -EINVAL;
-
-
+	
 	return count;
 }
 
@@ -199,20 +179,14 @@ static ssize_t rdabp_gpio_set_io_store(struct device *dev,
 {
 	int value;
 	rda_gpioc_op gpioc_op;
-	printk(KERN_DEBUG "%s, buf: %s\n", __func__, buf);
-printk(" 1111111111111111  rdabp_gpio_set_io_store \r\n  ");
 
 	if (sscanf(buf, "%u", &value) != 1)
-	{
-		printk(" 1111111111111111  rdabp_gpio_set_io_store    error !!!!!!! \r\n  ");
 		return -EINVAL;
-	}
-       gpioc_op.id = 8;
+    gpioc_op.id = 8;
 	gpioc_op.value = 1;
 	gpioc_op.default_value1 = 0;
 	gpioc_op.default_value2 = 0;
 	rda_gpioc_operation(&gpioc_op);
-	
 	
 	return 1;
 }
@@ -223,11 +197,8 @@ static ssize_t rdabp_gpio_get_value_store(struct device *dev,
 {
 	int value;
 
-	printk(KERN_DEBUG "%s, buf: %s\n", __func__, buf);
-
 	if (sscanf(buf, "%u", &value) != 1)
 		return -EINVAL;
-
 
 	return count;
 }
@@ -238,11 +209,8 @@ static ssize_t rdabp_gpio_set_value_store(struct device *dev,
 {
 	int value;
 
-	printk(KERN_DEBUG "%s, buf: %s\n", __func__, buf);
-
 	if (sscanf(buf, "%u", &value) != 1)
 		return -EINVAL;
-
 
 	return count;
 }
@@ -273,6 +241,10 @@ static DEVICE_ATTR(gpio_set_value,  0777,
 		NULL,rdabp_gpio_set_value_store);
 static DEVICE_ATTR(gpio_enable_irq, 0777,
 		NULL,rdabp_gpio_enable_irq_store);
+static DEVICE_ATTR(gpo_set, 0777,
+		NULL, OrangePi_2G_IOT_gpio_set_store);
+static DEVICE_ATTR(gpo_clear, 0777,
+		NULL, OrangePi_2G_IOT_gpio_clear_store);
 
 
 static int rda_gpioc_platform_probe(struct platform_device *pdev)
@@ -307,6 +279,8 @@ static int rda_gpioc_platform_probe(struct platform_device *pdev)
 	device_create_file(&pdev->dev, &dev_attr_gpio_get_value);
 	device_create_file(&pdev->dev, &dev_attr_gpio_set_value);
 	device_create_file(&pdev->dev, &dev_attr_gpio_enable_irq);
+	device_create_file(&pdev->dev, &dev_attr_gpo_set);
+	device_create_file(&pdev->dev, &dev_attr_gpo_clear);
 
 	#ifdef LED_CAM_FLASH
 	led_trigger_register_simple(LED_CAM_FLASH, &rda_sensor_led);

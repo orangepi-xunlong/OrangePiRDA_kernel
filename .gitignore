@@ -37,6 +37,10 @@ Module.markers
 *.gcno
 standby.code
 resume1.code
+Image
+piggy.gzip
+vmlinux
+zImage
 
 #
 # Gcov files
