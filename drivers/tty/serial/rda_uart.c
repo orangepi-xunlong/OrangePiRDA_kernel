@@ -882,6 +882,10 @@ static irqreturn_t rda_interrupt(int irq, void *dev_id)
 
 	rda_handle_receive(port, irqstatus);
 	rda_handle_uart_transmit(port, irqstatus);
+
+	// Poke status register to reset error conditions
+	hwp_uart->status = 0;
+
 	return IRQ_HANDLED;
 }
 
