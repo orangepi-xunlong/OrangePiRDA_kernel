@@ -408,10 +408,29 @@ static int rda_codec_start_play(struct snd_kcontrol *kcontrol,
 	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
 	struct rda_codec_data *codec_data = snd_soc_codec_get_drvdata(codec);
 
-	codec_data->stream.sampleRate = codec_data->out_sample_rate;
-	codec_data->stream.channelNb  = codec_data->out_channel_nb;
-	ret = aud_StreamStart(codec_data->itf, &(codec_data->stream), 
-			&(codec_data->cfg), codec_data);
+	if (codec_data->cfg.spkLevel <= SND_SPK_MUTE
+		|| codec_data->cfg.spkLevel >= SND_SPK_VOL_QTY) {
+		printk(KERN_WARNING "%s: Invalid playback volume\n", __func__);
+		ret = -1;
+	}
+
+	if (codec_data->out_sample_rate == 0) {
+		printk(KERN_WARNING "%s: Invalid sample rate\n", __func__);
+		ret = -1;
+	}
+
+	if (codec_data->out_channel_nb != HAL_AIF_MONO
+		&& codec_data->out_channel_nb != HAL_AIF_STEREO) {
+		printk(KERN_WARNING "%s: Invalid channel number\n", __func__);
+		ret = -1;
+	}
+
+	if (!ret) {
+		codec_data->stream.sampleRate = codec_data->out_sample_rate;
+		codec_data->stream.channelNb  = codec_data->out_channel_nb;
+		ret = aud_StreamStart(codec_data->itf, &(codec_data->stream), 
+				&(codec_data->cfg), codec_data);
+	}
 
 	if(!ret) {
 		codec_data->codec_is_open = TRUE;
@@ -443,10 +462,29 @@ static int rda_codec_start_record(struct snd_kcontrol *kcontrol,
 	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
 	struct rda_codec_data *codec_data = snd_soc_codec_get_drvdata(codec);
 
-	codec_data->stream.sampleRate = codec_data->in_sample_rate;
-	codec_data->stream.channelNb  = codec_data->in_channel_nb;
-	ret = aud_StreamRecord(codec_data->itf, &(codec_data->stream), 
-			&(codec_data->cfg), codec_data);
+	if (codec_data->cfg.micLevel < SND_MIC_MUTE
+		|| codec_data->cfg.micLevel >= SND_MIC_VOL_QTY) {
+		printk(KERN_WARNING "%s: Invalid capture volume\n", __func__);
+		ret = -1;
+	}
+
+	if (codec_data->in_sample_rate == 0) {
+		printk(KERN_WARNING "%s: Invalid sample rate\n", __func__);
+		ret = -1;
+	}
+
+	if (codec_data->in_channel_nb != HAL_AIF_MONO
+		&& codec_data->in_channel_nb != HAL_AIF_STEREO) {
+		printk(KERN_WARNING "%s: Invalid channel number\n", __func__);
+		ret = -1;
+	}
+
+	if (!ret) {
+		codec_data->stream.sampleRate = codec_data->in_sample_rate;
+		codec_data->stream.channelNb  = codec_data->in_channel_nb;
+		ret = aud_StreamRecord(codec_data->itf, &(codec_data->stream), 
+				&(codec_data->cfg), codec_data);
+	}
 
 	if(!ret) {
 		codec_data->codec_is_open = TRUE;
